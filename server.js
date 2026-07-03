@@ -22,9 +22,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root fallback
+// Root fallback displaying all endpoints in plain text (no CSS/HTML)
 app.get('/', (req, res) => {
-  res.send('Welcome to the GitHub Profile Analyzer API. Use the API endpoints at /api/profiles.');
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(
+    `Welcome to the GitHub Profile Analyzer API.\n\n` +
+    `Available Endpoints:\n` +
+    `1. POST   /api/profiles/:username  - Analyze a GitHub user and save/refresh details in the database\n` +
+    `2. GET    /api/profiles            - List all analyzed profiles (supports search, sortBy, order, limit, offset)\n` +
+    `3. GET    /api/profiles/:username  - Fetch analytical details of a single user from the database\n` +
+    `4. DELETE /api/profiles/:username  - Delete an analyzed profile from the database\n` +
+    `5. GET    /health                  - Verify API service and database health status\n`
+  );
 });
 
 // 404 Route Handler
