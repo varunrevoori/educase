@@ -63,7 +63,14 @@ async function initDB() {
     const sqlite3 = require('sqlite3').verbose();
     console.log('Using SQLite database engine.');
 
-    const dbPath = process.env.DB_PATH || path.join(__dirname, '../database.sqlite');
+    let dbPath = process.env.DB_PATH;
+    if (!dbPath) {
+      if (process.env.VERCEL) {
+        dbPath = '/tmp/database.sqlite';
+      } else {
+        dbPath = path.join(__dirname, '../database.sqlite');
+      }
+    }
     return new Promise((resolve, reject) => {
       sqliteConnection = new sqlite3.Database(dbPath, (err) => {
         if (err) {
