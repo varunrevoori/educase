@@ -1,7 +1,7 @@
 {
   "name": "github-profile-analyzer-api",
   "version": "1.0.0",
-  "description": "A backend service that analyzes GitHub profiles and stores insights in SQLite.",
+  "description": "A backend service that analyzes GitHub profiles and stores insights in SQLite or MySQL.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,6 +12,7 @@
     "analyzer",
     "express",
     "sqlite",
+    "mysql",
     "nodejs"
   ],
   "author": "",
@@ -21,6 +22,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "mysql2": "^3.10.1",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

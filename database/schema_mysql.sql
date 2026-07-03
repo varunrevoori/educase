@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS profiles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  name VARCHAR(255),
+  avatar_url VARCHAR(255),
+  bio TEXT,
+  location VARCHAR(255),
+  blog VARCHAR(255),
+  public_repos INT DEFAULT 0,
+  followers INT DEFAULT 0,
+  following INT DEFAULT 0,
+  total_stars INT DEFAULT 0,
+  total_forks INT DEFAULT 0,
+  primary_language VARCHAR(100),
+  most_starred_repo_name VARCHAR(255),
+  most_starred_repo_stars INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_username (username)
+);

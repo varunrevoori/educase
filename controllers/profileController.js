@@ -2,7 +2,7 @@ const { query } = require('../config/db');
 const { fetchGitHubProfile } = require('../utils/githubHelper');
 
 /**
- * Trigger GitHub profile analysis and store/update in SQLite
+ * Trigger GitHub profile analysis and store/update in SQLite/MySQL
  */
 async function analyzeProfile(req, res) {
   const { username } = req.params;
@@ -14,30 +14,58 @@ async function analyzeProfile(req, res) {
   try {
     // Fetch and analyze data
     const profileData = await fetchGitHubProfile(username.trim());
+    const dbType = process.env.DB_TYPE || 'sqlite';
+    let upsertSql = '';
 
-    // Insert or update (Upsert) in SQLite
-    const upsertSql = `
-      INSERT INTO profiles (
-        username, name, avatar_url, bio, location, blog, public_repos, 
-        followers, following, total_stars, total_forks, primary_language, 
-        most_starred_repo_name, most_starred_repo_stars
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(username) DO UPDATE SET
-        name = excluded.name,
-        avatar_url = excluded.avatar_url,
-        bio = excluded.bio,
-        location = excluded.location,
-        blog = excluded.blog,
-        public_repos = excluded.public_repos,
-        followers = excluded.followers,
-        following = excluded.following,
-        total_stars = excluded.total_stars,
-        total_forks = excluded.total_forks,
-        primary_language = excluded.primary_language,
-        most_starred_repo_name = excluded.most_starred_repo_name,
-        most_starred_repo_stars = excluded.most_starred_repo_stars,
-        updated_at = CURRENT_TIMESTAMP;
-    `;
+    if (dbType === 'mysql') {
+      // MySQL UPSERT syntax
+      upsertSql = `
+        INSERT INTO profiles (
+          username, name, avatar_url, bio, location, blog, public_repos, 
+          followers, following, total_stars, total_forks, primary_language, 
+          most_starred_repo_name, most_starred_repo_stars
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          name = VALUES(name),
+          avatar_url = VALUES(avatar_url),
+          bio = VALUES(bio),
+          location = VALUES(location),
+          blog = VALUES(blog),
+          public_repos = VALUES(public_repos),
+          followers = VALUES(followers),
+          following = VALUES(following),
+          total_stars = VALUES(total_stars),
+          total_forks = VALUES(total_forks),
+          primary_language = VALUES(primary_language),
+          most_starred_repo_name = VALUES(most_starred_repo_name),
+          most_starred_repo_stars = VALUES(most_starred_repo_stars),
+          updated_at = CURRENT_TIMESTAMP;
+      `;
+    } else {
+      // SQLite UPSERT syntax
+      upsertSql = `
+        INSERT INTO profiles (
+          username, name, avatar_url, bio, location, blog, public_repos, 
+          followers, following, total_stars, total_forks, primary_language, 
+          most_starred_repo_name, most_starred_repo_stars
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(username) DO UPDATE SET
+          name = excluded.name,
+          avatar_url = excluded.avatar_url,
+          bio = excluded.bio,
+          location = excluded.location,
+          blog = excluded.blog,
+          public_repos = excluded.public_repos,
+          followers = excluded.followers,
+          following = excluded.following,
+          total_stars = excluded.total_stars,
+          total_forks = excluded.total_forks,
+          primary_language = excluded.primary_language,
+          most_starred_repo_name = excluded.most_starred_repo_name,
+          most_starred_repo_stars = excluded.most_starred_repo_stars,
+          updated_at = CURRENT_TIMESTAMP;
+      `;
+    }
 
     const values = [
       profileData.username,
@@ -74,7 +102,7 @@ async function analyzeProfile(req, res) {
 }
 
 /**
- * Get all analyzed profiles from SQLite database
+ * Get all analyzed profiles from SQLite/MySQL database
  */
 async function getAllProfiles(req, res) {
   try {
@@ -117,7 +145,7 @@ async function getAllProfiles(req, res) {
     // Append ordering (safe due to whitelist)
     selectSql += ` ORDER BY ${sortBy} ${order}`;
     
-    // Append pagination
+    // Append pagination (LIMIT/OFFSET syntax works on both MySQL and SQLite)
     selectSql += ' LIMIT ? OFFSET ?';
     queryParams.push(limit, offset);
 
